@@ -45,13 +45,19 @@ function PosterMonolith({
     const targetX = offset * spacing;
     const targetZ = isFocused ? 0.55 : -Math.abs(offset) * 0.45;
     const floatY = Math.sin(state.clock.elapsedTime * 1.4 + index * 0.9) * 0.05;
-    const baseHeight = isPortrait ? 0.35 : 0.25;
+    const baseHeight = isPortrait ? 0.62 : 0.25;
     const targetY = (isFocused ? baseHeight : baseHeight - 0.12) + floatY;
 
     const targetRotY = THREE.MathUtils.clamp(-offset * 0.16, -0.55, 0.55);
-    const focusScale = isPortrait ? 0.92 : 1.04;
-    const idleScale = isPortrait ? 0.78 : 0.88;
-    const targetScale = isFocused ? (hovered ? focusScale + 0.03 : focusScale) : hovered ? idleScale + 0.05 : idleScale;
+    const focusScale = isPortrait ? 0.9 : 1.04;
+    const idleScale = isPortrait ? 0.76 : 0.88;
+    const targetScale = isFocused
+      ? hovered
+        ? focusScale + 0.03
+        : focusScale
+      : hovered
+        ? idleScale + 0.05
+        : idleScale;
 
     const damp = 1 - Math.exp(-7 * delta);
     groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, damp);
@@ -114,14 +120,14 @@ function ResponsiveStage({
 
   useFrame((state, delta) => {
     const damp = 1 - Math.exp(-4 * delta);
-    const targetZ = isPortrait ? 6.9 : 5.8;
+    const targetZ = isPortrait ? 7.2 : 5.8;
     const targetX = isPortrait ? 0 : state.pointer.x * 0.55;
-    const targetY = (isPortrait ? 0.35 : 0.45) + (isPortrait ? 0 : state.pointer.y * 0.25);
+    const targetY = 0.45 + (isPortrait ? 0 : state.pointer.y * 0.25);
 
     state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, damp);
     state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, damp);
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, damp);
-    state.camera.lookAt(0, isPortrait ? 0.25 : 0.2, 0);
+    state.camera.lookAt(0, isPortrait ? 0.42 : 0.2, 0);
   });
 
   return (
