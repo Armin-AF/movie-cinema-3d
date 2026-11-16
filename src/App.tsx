@@ -23,6 +23,7 @@ export default function App() {
   const [inspectedMovie, setInspectedMovie] = useState<MovieEntry | null>(null);
   const [trailerMovie, setTrailerMovie] = useState<MovieEntry | null>(null);
   const wheelLockRef = useRef(0);
+  const touchStartXRef = useRef<number | null>(null);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/movies.json`;
@@ -83,11 +84,29 @@ export default function App() {
       }
     };
 
+    const handleTouchStart = (e: TouchEvent) => {
+      if (inspectedMovie || trailerMovie || moodMenuOpen) return;
+      touchStartXRef.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (touchStartXRef.current === null || inspectedMovie || trailerMovie) return;
+      const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+      touchStartXRef.current = null;
+      if (Math.abs(deltaX) > 40) {
+        stepGallery(deltaX < 0 ? 1 : -1);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('wheel', handleWheel, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   });
 
@@ -167,7 +186,8 @@ export default function App() {
                 <span />
                 <span />
               </span>
-              <span>{musicPlaying ? 'Score On' : 'Ambient Score'}</span>
+              <span className="btn-label-desktop">{musicPlaying ? 'Score On' : 'Ambient Score'}</span>
+              <span className="btn-label-mobile">{musicPlaying ? 'On' : 'Score'}</span>
             </motion.button>
           </div>
 
@@ -201,7 +221,7 @@ export default function App() {
               onClick={() => setMoodMenuOpen((v) => !v)}
             >
               <SlidersHorizontal size={14} />
-              <span>{selectedMood ?? 'Filter Mood'}</span>
+              <span>{selectedMood ?? 'Mood'}</span>
             </motion.button>
 
             <motion.button
@@ -266,14 +286,13 @@ export default function App() {
             transition={{ duration: 0.25 }}
           >
             <div className="spotlight-top">
-              <div>
+              <div className="spotlight-heading">
                 <h2 className="spotlight-title">
                   {activeMovie.title}
                   <span>{activeMovie.year}</span>
                 </h2>
                 <div className="spotlight-sub">
-                  Directed by {activeMovie.director} &bull;{' '}
-                  {activeMovie.moods.join(' · ')}
+                  Dir. {activeMovie.director} &bull; {activeMovie.moods.join(' · ')}
                 </div>
               </div>
 
@@ -306,7 +325,7 @@ export default function App() {
                   onClick={() => setInspectedMovie(activeMovie)}
                 >
                   <Film size={15} />
-                  Reflections
+                  <span>Journal</span>
                 </button>
               </div>
             </div>
@@ -314,7 +333,12 @@ export default function App() {
             <p className="spotlight-context">{activeMovie.lifeContext}</p>
 
             <div className="scroll-hint">
-              SCROLL, USE ARROW KEYS, OR CLICK POSTER TO OPEN JOURNAL ({activeIndex + 1} / {filteredMovies.length})
+              <span className="hint-desktop">
+                SCROLL, USE ARROW KEYS, OR CLICK POSTER TO OPEN JOURNAL ({activeIndex + 1} / {filteredMovies.length})
+              </span>
+              <span className="hint-mobile">
+                SWIPE LEFT/RIGHT OR TAP POSTER ({activeIndex + 1} / {filteredMovies.length})
+              </span>
             </div>
           </motion.section>
         )}
