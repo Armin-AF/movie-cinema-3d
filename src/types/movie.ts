@@ -15,5 +15,6 @@ export interface MovieEntry {
   lifeContext: string;
   memorableQuote: string;
   soundtrackHighlight: string;
+  soundtrackId?: string;
   reflections: ReflectionLog[];
 }

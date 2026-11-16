@@ -314,7 +314,7 @@ html, body, #root {
   font-weight: 600;
 }
 
-/* Bottom Focused Film Spotlight HUD (Centered safely with margin-inline: auto) */
+/* Bottom Focused Film Spotlight HUD */
 .hud-bottom {
   position: fixed;
   bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
@@ -487,6 +487,56 @@ html, body, #root {
   border-radius: 5px;
 }
 
+/* Drawer Soundtrack Player */
+.soundtrack-player-card {
+  background: rgba(226, 176, 110, 0.06);
+  border: 1px solid var(--border-gold);
+  border-radius: 12px;
+  padding: 0.75rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.soundtrack-player-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.soundtrack-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(226, 176, 110, 0.16);
+  border: 1px solid var(--border-gold);
+  color: var(--accent);
+  padding: 0.32rem 0.68rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.soundtrack-embed-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+}
+
+.soundtrack-embed-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .context-box {
   background: rgba(255, 255, 255, 0.03);
   border-left: 3px solid var(--accent);
@@ -608,7 +658,6 @@ html, body, #root {
     display: inline;
   }
 
-  /* Keep all 4 top controls on a single neat horizontal row */
   .wing-left {
     order: 2;
     gap: 0.35rem;
@@ -635,7 +684,6 @@ html, body, #root {
     justify-content: center;
   }
 
-  /* Centered Bottom Mobile Card */
   .hud-bottom {
     bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
     width: calc(100vw - 1.5rem);

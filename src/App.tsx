@@ -8,9 +8,12 @@ import {
   Play,
   SlidersHorizontal,
   Sparkles,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react';
 import { CinemaScene } from './components/CinemaScene';
+import { YouTubeSoundtrack } from './components/YouTubeSoundtrack';
 import { cinemaScore } from './utils/cinemaAudio';
 import type { MovieEntry } from './types/movie';
 
@@ -19,6 +22,7 @@ export default function App() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [moodMenuOpen, setMoodMenuOpen] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
+  const [soundtrackEnabled, setSoundtrackEnabled] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [inspectedMovie, setInspectedMovie] = useState<MovieEntry | null>(null);
   const [trailerMovie, setTrailerMovie] = useState<MovieEntry | null>(null);
@@ -64,12 +68,21 @@ export default function App() {
     });
   };
 
+  const openJournal = (movie: MovieEntry) => {
+    if (musicPlaying) {
+      cinemaScore.stop();
+      setMusicPlaying(false);
+    }
+    setSoundtrackEnabled(true);
+    setInspectedMovie(movie);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (inspectedMovie || trailerMovie) return;
       if (e.key === 'ArrowRight') stepGallery(1);
       if (e.key === 'ArrowLeft') stepGallery(-1);
-      if (e.key === 'Enter' && activeMovie) setInspectedMovie(activeMovie);
+      if (e.key === 'Enter' && activeMovie) openJournal(activeMovie);
       if (e.key === 'Escape') setMoodMenuOpen(false);
     };
 
@@ -141,7 +154,7 @@ export default function App() {
           movies={filteredMovies}
           activeIndex={activeIndex}
           onSelectIndex={setActiveIndex}
-          onInspectMovie={setInspectedMovie}
+          onInspectMovie={openJournal}
         />
       )}
 
@@ -167,7 +180,6 @@ export default function App() {
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="proscenium-grid">
-          {/* Left Wing: Reel Telemetry & Ambient Score */}
           <div className="wing-left">
             <div className="reel-telemetry">
               REEL <strong>{String(activeIndex + 1).padStart(2, '0')}</strong> /{' '}
@@ -191,7 +203,6 @@ export default function App() {
             </motion.button>
           </div>
 
-          {/* Center Monumental Masthead */}
           <div className="masthead-center">
             <div className="projector-flare" />
             <div className="masthead-kicker">
@@ -212,7 +223,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Wing: Mood Filter & Random Prescription */}
           <div className="wing-right">
             <motion.button
               whileHover={{ scale: 1.04 }}
@@ -236,7 +246,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Floating Mood Palette Popover */}
         <AnimatePresence>
           {moodMenuOpen && (
             <motion.div
@@ -322,7 +331,7 @@ export default function App() {
                 )}
                 <button
                   className="btn-inspect"
-                  onClick={() => setInspectedMovie(activeMovie)}
+                  onClick={() => openJournal(activeMovie)}
                 >
                   <Film size={15} />
                   <span>Journal</span>
@@ -344,7 +353,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Slide-Over Reflection Drawer */}
+      {/* Slide-Over Reflection Drawer with Official YouTube IFrame SDK Player */}
       <AnimatePresence>
         {inspectedMovie && (
           <motion.div
@@ -380,6 +389,48 @@ export default function App() {
                 ))}
               </div>
 
+              {/* Soundtrack Now Playing Card */}
+              {inspectedMovie.soundtrackHighlight && (
+                <div className="soundtrack-player-card">
+                  <div className="soundtrack-player-top">
+                    <div className="soundtrack-row">
+                      <Music size={15} color="#e2b06e" />
+                      <span>{inspectedMovie.soundtrackHighlight}</span>
+                    </div>
+                    {inspectedMovie.soundtrackId && (
+                      <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                        <a
+                          href={`https://www.youtube.com/watch?v=${inspectedMovie.soundtrackId.split('&')[0]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="soundtrack-toggle-btn"
+                          style={{ textDecoration: 'none' }}
+                          title="Open on YouTube"
+                        >
+                          YouTube ↗
+                        </a>
+                        <button
+                          className="soundtrack-toggle-btn"
+                          onClick={() => setSoundtrackEnabled((v) => !v)}
+                          title={soundtrackEnabled ? 'Hide player' : 'Play soundtrack'}
+                        >
+                          {soundtrackEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                          <span>{soundtrackEnabled ? 'On' : 'Play'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {inspectedMovie.soundtrackId && soundtrackEnabled && (
+                    <YouTubeSoundtrack
+                      key={`${inspectedMovie.slug}-${inspectedMovie.soundtrackId}`}
+                      videoId={inspectedMovie.soundtrackId}
+                      title={inspectedMovie.soundtrackHighlight}
+                    />
+                  )}
+                </div>
+              )}
+
               <div className="context-box">
                 <span>WHEN IN LIFE TO WATCH</span>
                 <p>{inspectedMovie.lifeContext}</p>
@@ -389,13 +440,6 @@ export default function App() {
                 <blockquote className="quote-box">
                   “{inspectedMovie.memorableQuote}”
                 </blockquote>
-              )}
-
-              {inspectedMovie.soundtrackHighlight && (
-                <div className="soundtrack-row">
-                  <Music size={15} color="#e2b06e" />
-                  <span>{inspectedMovie.soundtrackHighlight}</span>
-                </div>
               )}
 
               {inspectedMovie.trailerId && (
@@ -460,10 +504,11 @@ export default function App() {
               </div>
               <div className="video-ratio">
                 <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${trailerMovie.trailerId}?autoplay=1`}
+                  src={`https://www.youtube.com/embed/${trailerMovie.trailerId}?autoplay=1&rel=0`}
                   title={`${trailerMovie.title} Trailer`}
+                  referrerPolicy="strict-origin-when-cross-origin"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
               </div>
